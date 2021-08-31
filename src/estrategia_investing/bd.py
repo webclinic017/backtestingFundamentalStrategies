@@ -10,7 +10,7 @@ import pandas as pd
 import datetime as dt
 HOST="localhost"
 USER="root"
-PASSWORD="ma24nolo"
+PASSWORD=
 PORT= 33063
 DATABASE="bolsa"
 
