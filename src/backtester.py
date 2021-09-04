@@ -15,7 +15,7 @@ import estrategia as e
 import configurarCerebro as cC
 import math
 OPTIMIZAR=True
-
+EVENTO_PRINCIPAL="pmi"
 CAPITAL_INICIAL=300000
 
 nombre_archivo="./estrategia_investing/resultados/resultados.csv"
@@ -27,17 +27,35 @@ symbols=["EUR_USD"]
 #symbols=["EUR_HKD","USD_HUF","CAD_CHF","GBP_CHF","AUD_CHF","CAD_JPY"]
 # dates to do backtesing. Backtesing is done using symbols from previus year. If you use 2012-05-01 you must have stationarity data from analisis between 2011-01-01 and 2012-01-01
 # dates to do backtesing. Backtesing is done using symbols from previus year. If you use 2012-05-01 you must have stationarity data from analisis between 2011-01-01 and 2012-01-01
-symbols=["EUR_GBP","EUR_USD","GBP_USD","EUR_CAD","GBP_CAD","EUR_AUD","USD_CAD","AUD_CAD","EUR_NZD","AUD_NZD","NZD_USD","NZD_CAD"]
+symbols=["EUR_GBP","EUR_USD","GBP_USD","EUR_CAD","GBP_CAD","EUR_AUD","USD_CAD","AUD_CAD","EUR_NZD","AUD_NZD","NZD_USD"]
 #symbols=["EUR_USD"]
-symbols=["EUR_GBP","EUR_USD","GBP_USD"]
-fechas=["2010-01-01","2021-04-01"] 
+symbols=["EUR_NZD","NZD_USD","EUR_USD","EUR_GBP","GBP_USD"]
+#symbols=["EUR_USD","EUR_GBP","GBP_USD"]
+eventos={}
+if EVENTO_PRINCIPAL=="pmi":
+    eventos["EUR"]=["manufacturing pmi"]
+    eventos["USD"]=["ISM manufacturing pmi"]
+    eventos["GBP"]=["manufacturing pmi"]
+    eventos["JPY"]=["pmi"]
+    eventos["NZD"]=["pmi"]
+elif EVENTO_PRINCIPAL=="cpi":
+    eventos["EUR"]=["cpi"]
+    eventos["USD"]=["cpi"]
+    eventos["GBP"]=["cpi"]
+    eventos["JPY"]=["national core cpi"]
+    eventos["NZD"]=["cpi"]
+    eventos["AUD"]=["cpi"]
+    eventos["CAD"]=["cpi"]
+    
+    
+    
+fechas=["2015-01-01","2021-04-01"] 
 
 #PARAMETROS
 MAperiodLong=[8,9,10,11,12]
 MAperiodShort=[2,3,4,5,6]
 maxEntradas=[10]
 lookBack=4
-
 for i in range(len(fechas)-1):
     
     
@@ -56,7 +74,7 @@ for i in range(len(fechas)-1):
     else:
             
             #configure cerebro: add data ...
-        cerebro,prize_df,calendario1,calendario2=cC.configurarCerebro(symbols,DESDE,HASTA,CAPITAL_INICIAL)
+        cerebro,prize_df=cC.configurarCerebro(symbols,DESDE,HASTA,CAPITAL_INICIAL,eventos)
         cerebro.addobserver(bt.observers.Broker)
         if not OPTIMIZAR:
             

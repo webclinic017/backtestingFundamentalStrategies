@@ -6,7 +6,7 @@ import numpy as np
 
 class TestStrategy(bt.Strategy):
     #dont use log=True with optimation stratey
-    params = (('print',False),('maxEntradas',10),('log',False),('lookBack',4),('MAperiodShort',3),('MAperiodLong',10),('maximoCPI',200),('symbols',[]))
+    params = (('print',False),('maxEntradas',10),('log',False),('lookBack',4),('MAperiodShort',5),('MAperiodLong',12),('maximoCPI',200),('symbols',[]))
     
     def log(self, txt, dt=None):
       if self.params.log:
@@ -83,7 +83,7 @@ class TestStrategy(bt.Strategy):
                 "media corta del segundo simbolo= %s, media larga del segundo simbolo= %s")%(self.datas[0].datetime.datetime(0),self.mas1Corta[i],self.mas1Larga[i],self.mas2Corta[i],self.mas2Larga[i]))
               return "venta"
             
-            if self.datos1[i][-self.params.lookBack]==self.params.maximoCPI:
+            """if self.datos1[i][-self.params.lookBack]==self.params.maximoCPI:
                 if self.params.print:
                     print(self.datas[0].datetime.datetime(0))
                     print("compra por maximo")
@@ -92,7 +92,7 @@ class TestStrategy(bt.Strategy):
                 if self.params.print:
                     print(self.datas[0].datetime.datetime(0))
                     print("venta por maximo")
-                return "venta"
+                return "venta"""
         
         
         return "nada"

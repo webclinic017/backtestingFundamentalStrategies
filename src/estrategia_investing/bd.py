@@ -10,7 +10,7 @@ import pandas as pd
 import datetime as dt
 HOST="localhost"
 USER="root"
-PASSWORD=
+PASSWORD="ma24nolo"
 PORT= 33063
 DATABASE="bolsa"
 
@@ -96,7 +96,31 @@ class  Bd():
     
     def obtenerPorEventosYFechas(self,evento:str,fecha1:str,fecha2:str):
         evento=evento[:-1]
-        self.mycursor.execute("select * from calendario where event like %s and fecha>= %s and fecha<%s",('%'+evento+'%',fecha1,fecha2,) )
+        self.mycursor.execute("select * from calendario where (event like %s or event like %s) and fecha>= %s and fecha<%s and importance='high'",('% '+evento+'%',evento+'%',fecha1,fecha2,) )
+        df = pd.DataFrame(self.mycursor.fetchall())
+        df.columns = self.mycursor.column_names
+        return df
+    def obtenerPorEventosFechasYSimbolo(self,evento:str,fecha1:str,fecha2:str,simbolo:str,importance:str):
+        evento=evento[:-1]
+        self.mycursor.execute("select * from calendario where (event like %s or event like %s) and fecha>= %s and fecha<%s and importance=%s and currency=%s",('% '+evento+'%',evento+'%',fecha1,fecha2,importance,simbolo) )
+        df = pd.DataFrame(self.mycursor.fetchall())
+        df.columns = self.mycursor.column_names
+        return df
+    def obtenerCalendarios(self,evento:str,fecha1:str,fecha2:str,simbolo:str):
+        
+
+        self.mycursor.execute("select * from calendario where event like %s and fecha>= %s and fecha<%s and currency=%s and importance='high' ",(str("%")+evento+str("%"),fecha1,fecha2,simbolo) )
+        df = pd.DataFrame(self.mycursor.fetchall())
+        if len(df)==0:
+             self.mycursor.execute("select * from calendario where event like %s and fecha>= %s and fecha<%s and currency=%s and importance='medium' ",(str("%")+evento+str("%"),fecha1,fecha2,simbolo) )
+             df = pd.DataFrame(self.mycursor.fetchall())
+            
+        df.columns = self.mycursor.column_names
+        print("simbolo: %s, numero de eventos obtenidos: %s"%(simbolo,len(df)))
+        return df
+    def obtenerPorEventosYFechasMedium(self,evento:str,fecha1:str,fecha2:str):
+        evento=evento[:-1]
+        self.mycursor.execute("select * from calendario where (event like %s or event like %s)  and fecha>= %s and fecha<%s and importance='medium'",('% '+evento+'%',evento+'%',fecha1,fecha2,) )
         df = pd.DataFrame(self.mycursor.fetchall())
         df.columns = self.mycursor.column_names
         return df
