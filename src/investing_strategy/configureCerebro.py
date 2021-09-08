@@ -2,23 +2,19 @@
 import backtrader as bt
 import pandas as pd
 import operator
-import sys
-sys.path.append("estrategia")
-import analisisEventos as aE
+import analizeEvents as aE
 import numpy as np 
-import time
 import datetime as dt
-def comprobarSpreads(symbol,prize_df):
+def checkSpreads(symbol,prize_df):
     spread1=prize_df["spread"].mean()
     close1=prize_df["close"].mean()
 
-    print("Simbolo %s :SPREAD %s, CLOSE %s"%(symbol,spread1,close1))
-  
+    
     if spread1/close1>0.001 :
-        print("Spread demasiado alto")
+        print("Spread to high")
         return False
     return True
-def configurarCerebro(symbols,DESDE,HASTA,CAPITAL_INICIAL,events:{}):
+def configureCerebro(symbols,FROM,TO,INITIAL_CAPITAL,events:{}):
     cerebro = bt.Cerebro(optreturn=False,maxcpus=2,optdatas=True)
        
     for symbol in symbols:
@@ -27,8 +23,8 @@ def configurarCerebro(symbols,DESDE,HASTA,CAPITAL_INICIAL,events:{}):
             prize_df = pd.read_csv("../data/divisasSpreadHurstD1/" + symbol + ".csv")
             prize_df.drop(labels=["hurst","half_life"],axis=1,inplace=True)
             prize_df["time"] = pd.to_datetime(prize_df['time'])
-            prize_df = prize_df.loc[operator.__and__(prize_df.loc[:, "time"] >=DESDE,
-                                prize_df.loc[:, "time"] <= HASTA )]
+            prize_df = prize_df.loc[operator.__and__(prize_df.loc[:, "time"] >=FROM,
+                                prize_df.loc[:, "time"] <= TO )]
             prize_df["time"]=prize_df["time"].dt.normalize()
             prize_df.set_index("time",drop=True,inplace=True)
             prize_df.drop(labels="index",axis=1,inplace=True)
@@ -39,7 +35,7 @@ def configurarCerebro(symbols,DESDE,HASTA,CAPITAL_INICIAL,events:{}):
                 for event in events[symbol3]:
                   
                    
-                    calendario=aE.obtenerCalendario(symbol3,DESDE,HASTA,event)
+                    calendario=aE.obtenerCalendario(symbol3,FROM,TO,event)
                     calendario["date"]=pd.to_datetime(calendario["date"],)
             
            
@@ -82,18 +78,19 @@ def configurarCerebro(symbols,DESDE,HASTA,CAPITAL_INICIAL,events:{}):
                 k+=1
             params=tuple(params)
           
-            print(params)
+            #print(params)
                 
          
             
             mydict = dict(lines=tuple(lines), params =params,
     datafieds=bt.feeds.PandasData.datafields +lines)
            
-            MyPandasClass = type('mypandasname', (bt.feeds.PandasData,), mydict)
+            MyPandasClass = type(symbol, (bt.feeds.PandasData,), mydict)
+            setattr(bt.metabase, symbol, MyPandasClass)
             data = MyPandasClass (dataname=prize_df, name=symbol)
             cerebro.adddata(data)     
     
-    cerebro.broker.setcash(CAPITAL_INICIAL)
+    cerebro.broker.setcash(INITIAL_CAPITAL)
     cerebro.addsizer(bt.sizers.FixedSize, stake=10000)
     cerebro.addanalyzer(bt.analyzers.PyFolio)
     cerebro.addanalyzer(bt.analyzers.DrawDown, _name="drawdown")

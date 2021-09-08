@@ -46,7 +46,7 @@ def obtenerCalendario(simbolo,fecha1,fecha2,evento):
     dic2=[]
    
     
-    dataframe=bd.obtenerCalendarios(evento,fecha1,fecha2,simbolo)
+    dataframe=bd.getCalendar(evento,fecha1,fecha2,simbolo)
    
         
    
