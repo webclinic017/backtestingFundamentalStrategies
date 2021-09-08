@@ -20,7 +20,7 @@ bd=bd.Bd()
 filtroSimbolo=True
 fechaa1="2011-01-01"
 fechaa2="2021-09-01"
-filtro="usd"
+filtro="aud"
 importance="high"
 def transformarValor(valor=str):
    try:
@@ -56,6 +56,9 @@ def obtenerCalendario(simbolo,fecha1,fecha2,evento):
  
     
     array=dataframe.loc[:,["fecha","actual"]]
+    array["date"]=array["fecha"]
+    array.drop(labels=["fecha"],axis=1,inplace=True)
+    #print(array)
   
    
     array=array.loc[ array["actual"].notna()]

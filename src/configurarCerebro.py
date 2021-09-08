@@ -4,8 +4,8 @@ import pandas as pd
 import operator
 import sys
 sys.path.append("estrategia")
-import analisisEventos as events
-import dataFeed as dF
+import analisisEventos as aE
+import dataFeed2 as dF
 import numpy as np 
 import time
 import datetime as dt
@@ -19,7 +19,7 @@ def comprobarSpreads(symbol,prize_df):
         print("Spread demasiado alto")
         return False
     return True
-def configurarCerebro(symbols,DESDE,HASTA,CAPITAL_INICIAL,eventos:{}):
+def configurarCerebro(symbols,DESDE,HASTA,CAPITAL_INICIAL,events:{}):
     cerebro = bt.Cerebro(optreturn=False,maxcpus=2,optdatas=True)
        
     for symbol in symbols:
@@ -33,36 +33,65 @@ def configurarCerebro(symbols,DESDE,HASTA,CAPITAL_INICIAL,eventos:{}):
             prize_df["time"]=prize_df["time"].dt.normalize()
             prize_df.set_index("time",drop=True,inplace=True)
             prize_df.drop(labels="index",axis=1,inplace=True)
-            simbolo1=symbol.split("_")[0]
-            simbolo2=symbol.split("_")[1]
-            for simbolo in [simbolo1,simbolo2]:
-                for evento in eventos[simbolo]:
+            symbol1=symbol.split("_")[0]
+            symbol2=symbol.split("_")[1]
+            for symbol3 in [symbol1,symbol2]:
+                i+=1
+                for event in events[symbol3]:
                   
-                    i+=1
-                    calendario=events.obtenerCalendario(simbolo,DESDE,HASTA,evento)
-                    calendario["fecha"]=pd.to_datetime(calendario["fecha"],)
+                   
+                    calendario=aE.obtenerCalendario(symbol3,DESDE,HASTA,event)
+                    calendario["date"]=pd.to_datetime(calendario["date"],)
             
            
-                    calendario["fecha"]=calendario["fecha"].dt.normalize()
+                    calendario["date"]=calendario["date"].dt.normalize()
             
-                    prize_df["eventos"+str(i)]=0
+                    prize_df[event+str(i)]=0
             
-                    calendario.set_index(keys=["fecha"],drop=True,inplace=True)
+                    calendario.set_index(keys=["date"],drop=True,inplace=True)
                    
           
           
     
-                    for fecha in calendario.index.values:
+                    for date in calendario.index.values:
+                   
                         #print("%s %s"%(fecha,calendario.loc[fecha,"actual"]))
                         try:
-                            prize_df.loc[fecha,"eventos"+str(i)]=calendario.loc[fecha,"actual"]
+                            prize_df.loc[date,event+str(i)]=calendario.loc[date,"actual"]
                         except Exception as e:
-                            prize_df.loc[fecha,"eventos"+str(i)]=calendario.loc[fecha,"actual"][0]
+                            prize_df.loc[date,event+str(i)]=calendario.loc[date,"actual"][0]
            
            
             prize_df=prize_df.loc[prize_df["close"].notna()]
-            data = dF.PandasData1(dataname=prize_df, name=symbol)
-        
+          
+            lines=["spread"]
+            for event in [symbol1,symbol2]:
+             if event==symbol1: 
+                for e in events[event]:
+                    lines.append((e+str(0)).replace(" ",""))
+             elif event==symbol2:
+                for e in events[event]:
+                    lines.append((e+str(1)).replace(" ",""))
+                 
+          
+           
+            k=5
+            params=[]
+            for line in lines:
+                param=tuple([line,k])
+                params.append(param)
+                k+=1
+            params=tuple(params)
+          
+            print(params)
+                
+         
+            
+            mydict = dict(lines=tuple(lines), params =params,
+    datafieds=bt.feeds.PandasData.datafields +lines)
+           
+            MyPandasClass = type('mypandasname', (bt.feeds.PandasData,), mydict)
+            data = MyPandasClass (dataname=prize_df, name=symbol)
             cerebro.adddata(data)     
     
     cerebro.broker.setcash(CAPITAL_INICIAL)
