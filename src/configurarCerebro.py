@@ -5,7 +5,6 @@ import operator
 import sys
 sys.path.append("estrategia")
 import analisisEventos as aE
-import dataFeed2 as dF
 import numpy as np 
 import time
 import datetime as dt
