@@ -1,1 +1,1 @@
-{"AUD": ["aig manufacturing index", "CPI"], "CAD": ["pmi", "CPI"], "NZD": ["BUSINESS NZ PMI", "cpi"], "JPY": ["Services pmi", "National Core CPI"], "EUR": ["german manufacturing pmi", "cpi"], "USD": ["ISM manufacturing pmi", "cpi"], "GBP": ["manufacturing pmi", "cpi"]}
+{"EUR": ["german manufacturing pmi", "cpi"], "USD": ["ISM manufacturing pmi", "cpi"]}

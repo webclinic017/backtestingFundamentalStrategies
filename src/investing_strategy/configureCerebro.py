@@ -5,6 +5,7 @@ import operator
 import analizeEvents as aE
 import numpy as np 
 import datetime as dt
+CONSTANTE=-100000
 def checkSpreads(symbol,prize_df):
     spread1=prize_df["spread"].mean()
     close1=prize_df["close"].mean()
@@ -52,7 +53,11 @@ def configureCerebro(symbols,FROM,TO,INITIAL_CAPITAL,events:{}):
                    
                         #print("%s %s"%(fecha,calendario.loc[fecha,"actual"]))
                         try:
-                            prize_df.loc[date,event+str(i)]=calendario.loc[date,"actual"]
+                            if calendario.loc[date,"actual"]!=0:
+                                prize_df.loc[date,event+str(i)]=calendario.loc[date,"actual"]
+                            else:
+                               prize_df.loc[date,event+str(i)]=CONSTANTE
+                        
                         except Exception as e:
                             prize_df.loc[date,event+str(i)]=calendario.loc[date,"actual"][0]
            

@@ -3,6 +3,7 @@
 import json
 import sys
 sys.path.append("./investing_strategy")
+import matplotlib.pyplot as plt
 import backtrader as bt
 from datetime import timedelta
 import datetime as dt
@@ -14,8 +15,9 @@ import operator
 import strategy as e
 import configureCerebro as cC
 import math
-OPTIMIZE=False
-INITIAL_CAPITAL=300000
+CONSTANTE=-100000
+OPTIMIZE=True
+INITIAL_CAPITAL=90000
 
 file_name="./investing_strategy/results/results.csv"
  
@@ -27,16 +29,18 @@ symbols=["EUR_NZD","NZD_USD"]
 symbols=["NZD_JPY","EUR_JPY","USD_JPY"]
 symbols=["EUR_USD","EUR_GBP","GBP_USD"]
 #symbols=["AUD_CAD","AUD_NZD","NZD_CAD"]
+symbols=["EUR_USD"]
+
 
 
 
 f=open('lines.json')
 events= json.load(f)  
-fechas=["2011-01-01","2021-04-01"] 
+fechas=["2010-01-01","2013-08-01"] 
 
 #PARAMETERS
-MAperiodLong=[9,10,11,12,13,14,15,16]
-MAperiodShort=[5,6]
+MAperiodLong=[19,20,21,22,23,24]
+MAperiodShort=[6,7,8]
 maxEntries=[10]
 lookBack=4
 for i in range(len(fechas)-1):
@@ -70,7 +74,7 @@ for i in range(len(fechas)-1):
             #print(events)
             cerebro.addstrategy(e.TestStrategy,symbols=symbols,events=events)
             thestrats = cerebro.run()
-            cerebro.plot(iplot=False,start=dt.date(2010, 4, 9), end=dt.date(2021, 3, 1))
+            cerebro.plot(iplot=False,start=dt.date(2011, 9, 1), end=dt.date(2021, 3, 1))
         
             thestrat = thestrats[0]
             pyfoliozer = thestrat.analyzers.getbyname('pyfolio')
