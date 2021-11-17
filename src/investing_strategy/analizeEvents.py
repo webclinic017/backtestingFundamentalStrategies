@@ -44,7 +44,7 @@ def transformarValor(valor=str):
 def obtenerCalendario(simbolo,fecha1,fecha2,evento):
     dic={}
     dic2=[]
-   
+    #print(evento)
     
     dataframe=bd.getCalendar(evento,fecha1,fecha2,simbolo)
    
@@ -68,6 +68,13 @@ def obtenerCalendario(simbolo,fecha1,fecha2,evento):
         u[l]=transformarValor(u[l])
     #array=array[array!=-1.2344]
     array["actual"]=u
+    #if evento=="cpi" and simbolo=="CAD":
+    #print("Se aplica media")
+    #array["actual"]=array["actual"].transform((
+    #    #lambda x: x.rolling(window=8).mean()
+    #    lambda x:x.ewm(span=2).mean()
+    #))
+    #print("Sd de la variable %s es %s"%(str(simbolo)+"_"+str(evento),np.std(u)))
   
     #print(array)
     
@@ -112,6 +119,7 @@ if __name__ == "__main__":
             for l in range(len(u)):
                 u[l]=transformarValor(u[l])
             #array=array[array!=-1.2344]
+            print("Varianza de la variable %s es %s"%(str(symbol)+"_"+str(event),np.std(u)))
             array["actual"]=u
             fmt_month = mdates.MonthLocator()
             axs[i].xaxis.set_minor_locator(fmt_month)

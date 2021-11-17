@@ -21,14 +21,14 @@ def configureCerebro(symbols,FROM,TO,INITIAL_CAPITAL,events:{}):
     for symbol in symbols:
             i=0
          
-            prize_df = pd.read_csv("../data/divisasSpreadHurstD1/" + symbol + ".csv")
-            prize_df.drop(labels=["hurst","half_life"],axis=1,inplace=True)
-            prize_df["time"] = pd.to_datetime(prize_df['time'])
+            prize_df = pd.read_csv("../data/divisasSpreadD1v3/" + symbol + ".csv")
+            #prize_df.drop(labels=["hurst","half_life"],axis=1,inplace=True)
+            prize_df["time"] = pd.to_datetime(prize_df['time'])+pd.Timedelta(hours=2)
             prize_df = prize_df.loc[operator.__and__(prize_df.loc[:, "time"] >=FROM,
                                 prize_df.loc[:, "time"] <= TO )]
             prize_df["time"]=prize_df["time"].dt.normalize()
             prize_df.set_index("time",drop=True,inplace=True)
-            prize_df.drop(labels="index",axis=1,inplace=True)
+            #prize_df.drop(labels="index",axis=1,inplace=True)
             symbol1=symbol.split("_")[0]
             symbol2=symbol.split("_")[1]
             for symbol3 in [symbol1,symbol2]:
@@ -96,7 +96,7 @@ def configureCerebro(symbols,FROM,TO,INITIAL_CAPITAL,events:{}):
             cerebro.adddata(data)     
     
     cerebro.broker.setcash(INITIAL_CAPITAL)
-    cerebro.addsizer(bt.sizers.FixedSize, stake=10000)
+    #cerebro.addsizer(bt.sizers.FixedSize, stake=10000)
     cerebro.addanalyzer(bt.analyzers.PyFolio)
     cerebro.addanalyzer(bt.analyzers.DrawDown, _name="drawdown")
     cerebro.addanalyzer(bt.analyzers.AnnualReturn, _name="anualreturn")

@@ -7,7 +7,7 @@ CONSTANTE=-100000
 
 class TestStrategy(bt.Strategy):
     #dont use log=True with optimation stratey
-    params = (('print',False),('maxEntries',10),('log',False),('lookBack',4),('MAperiodShort',8),('MAperiodLong',22),('symbols',[]),('events',{}),('paramStopLoss',0.25))
+    params = (("lcompras",4),('print',False),('maxEntries',10),('log',False),('lookBack',4),('MAperiodShort',8),('MAperiodLong',22),('symbols',[]),('events',{}))
     
     def log(self, txt, dt=None):
       if self.params.log:
@@ -20,8 +20,9 @@ class TestStrategy(bt.Strategy):
     def stop(self):
         pnl = round(self.broker.getvalue() - self.startcash,2)
         
-        print('Final PnL: {}, tamAcumlado {}, max drowdowns {}, capital minimo {}'.format(pnl,self.tamAcumulado,self.caida,self.minProfit))
-        
+        print('Final PnL: {}'.format(pnl))
+        print(self.tamAcumulado)
+        print(self.caida)
       
     def __init__(self):
         self.startcash = self.broker.getvalue()
@@ -36,15 +37,16 @@ class TestStrategy(bt.Strategy):
         self.mas2Long= []
         self.data2=[]
         self.ks=[]
+        self.lcomprasInitial=self.params.lcompras
+        self.lventasInitial=self.params.lcompras
+        self.lcompras=self.params.lcompras
+        self.lventas=self.params.lcompras
         self.buyBefore=[]
         self.sellBefore=[]
         self.maximaGanancia= self.startcash/30
         self.caida=0
         #print("Numero de simbolos %s"%((len(self.datas))))
         self.tamAcumulado=0
-        self.dineroInicialOperacion=0
-        self.minProfit=100000
-      
         for i in range(len(self.datas)):
             
            
@@ -137,7 +139,7 @@ class TestStrategy(bt.Strategy):
                          (order.executed.price,
                           order.executed.value,
                           order.executed.comm))
-                """print("SELL EXECUTED, Price: %.5f, Cost: %.2f, Comm %.2f %s" %
+                """ print("SELL EXECUTED, Price: %.5f, Cost: %.2f, Comm %.2f %s" %
                          (order.executed.price,
                           order.executed.value,
                           order.executed.comm,
@@ -147,7 +149,6 @@ class TestStrategy(bt.Strategy):
 
         elif order.status in [order.Canceled, order.Margin, order.Rejected]:
             self.log('Order Canceled/Margin/Rejected')
-            print('Order Canceled/Margin/Rejected %s, %s, %s' %(self.datas[0].datetime.datetime(0),(self.broker.get_value()-87000),(self.getposition(self.datas[0]).size)))
         self.order = None
 
     def notify_trade(self, trade):
@@ -165,8 +166,7 @@ class TestStrategy(bt.Strategy):
        
         #print(self.getposition(self.datas[0]).size*(self.datas[0].close[0]-self.getposition(self.datas[0]).price))
         
-        if (self.broker.get_value()-87000)<self.minProfit:
-            self.minProfit=(self.broker.get_value()-87000)
+     
         if self.order:
             return
         if (self.startcash/30+(self.broker.get_value()-self.startcash)>self.maximaGanancia):
@@ -181,12 +181,7 @@ class TestStrategy(bt.Strategy):
         #if(3000+(self.broker.get_value()-90000)>10000):
             #time.sleep(1)
         #print(self.datas[0].datetime.datetime(0).weekday())
-        #print(self.broker.get_value()-87000)
-        #time.sleep(0.02)
-        uu=(self.broker.get_value()-87000)
-        #print(self.dineroInicialOperacion)
-        if self.dineroInicialOperacion>0 and abs(self.getposition(self.datas[0]).size)>0 and ((self.dineroInicialOperacion-uu)/self.dineroInicialOperacion)>self.params.paramStopLoss:
-               self.order = self.close(data=self.datas[0])    
+        
         for i in range(len(self.datas)):
            if self.datas[0].datetime.datetime(0).weekday()==2:
                if self.getposition(self.datas[i]).size<0:
@@ -212,13 +207,11 @@ class TestStrategy(bt.Strategy):
               
                a=self.broker.get_value()-90000-self.getposition(self.datas[i]).size*(self.datas[i].close[0]-self.getposition(self.datas[i]).price)
                a=a*30
-               
-               #if a>=0:
+               if a>=0:
                #size =  self.broker.get_value()  / (10*len(self.datas)*self.params.maxEntries)
-               size =  (a+90000)  / (3*len(self.datas)*self.params.maxEntries)
-               
-               #else:
-                    # size =  (90000)  / (3*len(self.datas)*self.params.maxEntries)
+                   size =  (a+90000)  / (9*len(self.datas)*self.params.maxEntries)
+               else:
+                     size =  (90000)  / (9**len(self.datas)*self.params.maxEntries)
                    
                sizeToBuy = int(size / (self.datas[i].close[0]))
               
@@ -234,18 +227,20 @@ class TestStrategy(bt.Strategy):
                
                #print(("%s %s %s"%(k,self.mas1Short[i][k],self.params.symbols[i])))
                if self.buyBefore[i] :
-                      self.dineroInicialOperacion=self.broker.get_value()-90000+3000
-                    
+                      sizeToBuy=max(sizeToBuy,self.lcompras*  sizeToBuy)
+                      #print(sizeToBuy)
                       if self.getposition(self.datas[i]).size < 0:
                                      self.order = self.close(data=self.datas[i])
                                      self.ks[i]=0
                       if self.ks[i]<self.params.maxEntries:           
                         self.order = self.buy(self.datas[i], size=sizeToBuy)
+                        self.lcompras-=1
                         #self.ks[i]+=1
-                      self.buyBefore[i]=False               
+                      self.buyBefore[i]=False  
+                      self.lventas=self.lventasInitial
                if self.sellBefore[i] :
-                    self.dineroInicialOperacion=self.broker.get_value()-90000+3000
-                  
+                    sizeToBuy=max(sizeToBuy,self.lventas*  sizeToBuy)
+                    #print(sizeToBuy)
                     #self.log("CLose %s"%((self.datas[i].close[0])))
                     #self.log("Comision %s"%(comision))
                     #self.log("SIze to buy %s"%(sizeToBuy))
@@ -254,8 +249,10 @@ class TestStrategy(bt.Strategy):
                                      self.ks[i]=0
                     if self.ks[i]<self.params.maxEntries: 
                          self.order = self.sell(self.datas[i], size=sizeToBuy)
+                         self.lventas-=1
                          #self.ks[i]+=1
-                    self.sellBefore[i]=False                    
+                    self.sellBefore[i]=False  
+                    self.lcompras=self.lcomprasInitial
                if getattr(self.datas[i],event1)[0]!=0 or  getattr(self.datas[i],event2)[0]!=0:
                    if getattr(self.datas[i],event1)[0]!=0:
                        if getattr(self.datas[i],event1)[0]!=CONSTANTE:
@@ -283,6 +280,7 @@ class TestStrategy(bt.Strategy):
                         #self.ks[i]+=1
                        self.buyBefore[i]=False  """
                        u=1
+                      
                        
                     
                    elif action=="sell" and u==0:

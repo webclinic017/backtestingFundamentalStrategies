@@ -4,7 +4,7 @@ import backtrader as bt
 import time
 import numpy as np
 CONSTANTE=-100000
-
+CAP_INICIAL=90000
 class TestStrategy(bt.Strategy):
     #dont use log=True with optimation stratey
     params = (('print',False),('maxEntries',10),('log',False),('lookBack',4),('MAperiodShort',8),('MAperiodLong',22),('symbols',[]),('events',{}),('paramStopLoss',0.25))
@@ -20,7 +20,7 @@ class TestStrategy(bt.Strategy):
     def stop(self):
         pnl = round(self.broker.getvalue() - self.startcash,2)
         
-        print('Final PnL: {}, tamAcumlado {}, max drowdowns {}, capital minimo {}'.format(pnl,self.tamAcumulado,self.caida,self.minProfit))
+        print('Final PnL: {}, tamAcumlado {}, max drowdowns {}, capital minimo {}, max invested {}'.format(pnl,self.tamAcumulado,self.caida,self.minProfit,self.minMargin))
         
       
     def __init__(self):
@@ -38,12 +38,13 @@ class TestStrategy(bt.Strategy):
         self.ks=[]
         self.buyBefore=[]
         self.sellBefore=[]
-        self.maximaGanancia= self.startcash/30
+        self.maximaGanancia= CAP_INICIAL/30
         self.caida=0
         #print("Numero de simbolos %s"%((len(self.datas))))
         self.tamAcumulado=0
         self.dineroInicialOperacion=0
         self.minProfit=100000
+        self.minMargin=0
       
         for i in range(len(self.datas)):
             
@@ -165,17 +166,25 @@ class TestStrategy(bt.Strategy):
        
         #print(self.getposition(self.datas[0]).size*(self.datas[0].close[0]-self.getposition(self.datas[0]).price))
         
-        if (self.broker.get_value()-87000)<self.minProfit:
-            self.minProfit=(self.broker.get_value()-87000)
+        if (self.broker.get_value()-87000-10000000)<self.minProfit:
+            self.minProfit=(self.broker.get_value()-87000-10000000)
         if self.order:
             return
-        if (self.startcash/30+(self.broker.get_value()-self.startcash)>self.maximaGanancia):
-            self.maximaGanancia=self.startcash/30+(self.broker.get_value()-self.startcash)
-        
-        if self.maximaGanancia-(self.startcash/30+(self.broker.get_value()-self.startcash))>self.caida:
+        cantidadInvertida=abs(self.getposition(self.datas[0]).size)*self.datas[0].close[0]
+        cantidadInvertida=cantidadInvertida/30/(self.broker.get_value()-self.startcash+3000)
+        if cantidadInvertida>self.minMargin:
+            self.minMargin=cantidadInvertida
+        #print("Cantidad invertida %s"%cantidadInvertida)
+        #time.sleep(0.01)
+        if (CAP_INICIAL/30+(self.broker.get_value()-self.startcash)>self.maximaGanancia):
            
-            self.caida=self.maximaGanancia-(self.startcash/30+(self.broker.get_value()-self.startcash))
-            #print("Max drowdown alcanzado el dia %s:capital %s, drowdown %s"%(str(self.datas[0].datetime.datetime(0)),(self.startcash/30+(self.broker.get_value()-self.startcash)),self.caida))
+            self.maximaGanancia=CAP_INICIAL/30+(self.broker.get_value()-self.startcash)
+            print("Max profit alcanzado el dia %s:capital %s, drowdown %s"%(str(self.datas[0].datetime.datetime(0)),(CAP_INICIAL/30+(self.broker.get_value()-self.startcash)),self.caida))
+            #time.sleep(0.1)
+        if self.maximaGanancia-(CAP_INICIAL/30+(self.broker.get_value()-self.startcash))>self.caida:
+           
+            self.caida=self.maximaGanancia-(CAP_INICIAL/30+(self.broker.get_value()-self.startcash))
+            print("Max drowdown alcanzado el dia %s:capital %s, drowdown %s"%(str(self.datas[0].datetime.datetime(0)),(CAP_INICIAL/30+(self.broker.get_value()-self.startcash)),self.caida))
             
         
         #if(3000+(self.broker.get_value()-90000)>10000):
@@ -183,7 +192,7 @@ class TestStrategy(bt.Strategy):
         #print(self.datas[0].datetime.datetime(0).weekday())
         #print(self.broker.get_value()-87000)
         #time.sleep(0.02)
-        uu=(self.broker.get_value()-87000)
+        uu=(self.broker.get_value()-87000-10000000)
         #print(self.dineroInicialOperacion)
         if self.dineroInicialOperacion>0 and abs(self.getposition(self.datas[0]).size)>0 and ((self.dineroInicialOperacion-uu)/self.dineroInicialOperacion)>self.params.paramStopLoss:
                self.order = self.close(data=self.datas[0])    
@@ -210,7 +219,7 @@ class TestStrategy(bt.Strategy):
                #print(event1)
                #print(event2)
               
-               a=self.broker.get_value()-90000-self.getposition(self.datas[i]).size*(self.datas[i].close[0]-self.getposition(self.datas[i]).price)
+               a=self.broker.get_value()-10000000-90000-self.getposition(self.datas[i]).size*(self.datas[i].close[0]-self.getposition(self.datas[i]).price)
                a=a*30
                
                #if a>=0:
@@ -234,7 +243,7 @@ class TestStrategy(bt.Strategy):
                
                #print(("%s %s %s"%(k,self.mas1Short[i][k],self.params.symbols[i])))
                if self.buyBefore[i] :
-                      self.dineroInicialOperacion=self.broker.get_value()-90000+3000
+                      self.dineroInicialOperacion=self.broker.get_value()-10000000-90000+3000
                     
                       if self.getposition(self.datas[i]).size < 0:
                                      self.order = self.close(data=self.datas[i])
@@ -244,7 +253,7 @@ class TestStrategy(bt.Strategy):
                         #self.ks[i]+=1
                       self.buyBefore[i]=False               
                if self.sellBefore[i] :
-                    self.dineroInicialOperacion=self.broker.get_value()-90000+3000
+                    self.dineroInicialOperacion=self.broker.get_value()-10000000-90000+3000
                   
                     #self.log("CLose %s"%((self.datas[i].close[0])))
                     #self.log("Comision %s"%(comision))

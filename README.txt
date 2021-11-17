@@ -17,3 +17,5 @@ If errors ocurr when changing to optimization be sure that print and log params 
 src/investing/strategy/ is the directory of strategy implementation.
 	ANALIZING RESULTS
 If you use optimization, you can check results visually using analizeResults (results directory in src/investing_strategy/ must be created).
+
+The good strategy is strategy 5.

@@ -12,12 +12,12 @@ import pandas as pd
 import numpy as np
 import time
 import operator
-import strategy as e
+import strategy5 as e
 import configureCerebro as cC
 import math
 CONSTANTE=-100000
-OPTIMIZE=True
-INITIAL_CAPITAL=90000
+OPTIMIZE=False
+INITIAL_CAPITAL=90000+10000000
 
 file_name="./investing_strategy/results/results.csv"
  
@@ -36,13 +36,22 @@ symbols=["EUR_USD"]
 
 f=open('lines.json')
 events= json.load(f)  
-fechas=["2010-01-01","2013-08-01"] 
+fechas=["2002-01-01","2021-6-30"] 
 
 #PARAMETERS
-MAperiodLong=[19,20,21,22,23,24]
-MAperiodShort=[6,7,8]
+MAperiodLong=[19,20,21,22,23,24,25]
+MAperiodShort=[6,7,8,9,10,11,12,13]
+MAperiodLong2=[23,24,25]
+MAperiodShort2=[14,15]
+
 maxEntries=[10]
 lookBack=4
+lcompras=[0,1,2,3,4,5,6,7,8,9]
+paramStopLoss=[0.25]
+largo=22
+corto=8
+largo2=22
+corto2=8
 for i in range(len(fechas)-1):
     
     
@@ -72,9 +81,9 @@ for i in range(len(fechas)-1):
             # run is donde with daily period. Can be change in program configurarCerebro changing the csv file and editing line 20.
            
             #print(events)
-            cerebro.addstrategy(e.TestStrategy,symbols=symbols,events=events)
+            cerebro.addstrategy(e.TestStrategy,symbols=symbols,events=events,MAperiodLong=largo,MAperiodShort=corto,MAperiodLong2=largo2,MAperiodShort2=corto2)
             thestrats = cerebro.run()
-            cerebro.plot(iplot=False,start=dt.date(2011, 9, 1), end=dt.date(2021, 3, 1))
+            cerebro.plot(iplot=False,start=dt.date(2002, 1, 1), end=dt.date(2021, 11, 1))
         
             thestrat = thestrats[0]
             pyfoliozer = thestrat.analyzers.getbyname('pyfolio')
@@ -93,12 +102,12 @@ for i in range(len(fechas)-1):
         else:
            
             
-            cerebro.optstrategy(e.TestStrategy,lookBack=lookBack,symbols=(symbols,),MAperiodLong=MAperiodLong,MAperiodShort=MAperiodShort,maxEntries=maxEntries,events=(events,))
+            cerebro.optstrategy(e.TestStrategy,lookBack=lookBack,symbols=(symbols,),MAperiodLong=MAperiodLong,MAperiodShort=MAperiodShort,maxEntries=maxEntries,events=(events,),paramStopLoss=paramStopLoss)
             opt_runs = cerebro.run(stdstats=False)
             final_results_list = []
             #save reusults of backtesing
-            dataframeRes=pd.DataFrame(columns=["maxEntries","longMean","shortMean","lookBack","profit","draw_down","sharpe","numberOfTransactions"])
-            dataframeRes.set_index(["maxEntries","longMean","shortMean","lookBack"],inplace=True,drop=True) 
+            dataframeRes=pd.DataFrame(columns=["paramStopLoss","maxEntries","longMean","shortMean","lookBack","profit","draw_down","sharpe","numberOfTransactions"])
+            dataframeRes.set_index(["paramStopLoss","maxEntries","longMean","shortMean","lookBack"],inplace=True,drop=True) 
             for run in opt_runs:
                 for strategy in run:
                     value = round(strategy.broker.get_value(),2)
@@ -107,7 +116,7 @@ for i in range(len(fechas)-1):
                     longMean = strategy.params.MAperiodLong
                     shortMean = strategy.params.MAperiodShort
                     lookBack=strategy.params.lookBack
-                  
+                    paramStopLoss=strategy.params.paramStopLoss
                     pyfoliozer = strategy.analyzers.getbyname('pyfolio')
                     d_returns1, d_positions, d_transactions, d_gross_lev = pyfoliozer.get_pf_items()
                     d_drawdown =strategy.analyzers.getbyname("drawdown").get_analysis()
@@ -116,7 +125,7 @@ for i in range(len(fechas)-1):
                     array = np.array(d_returns1)
                     media = array.mean()
                     desv = array.std()
-                    sharpe=(252 * media - 0.01) / (math.sqrt(252) * desv)
-                    dataframeRes.loc[maxEntries,longMean,shortMean,lookBack]=[PnL,d_drawdown["max"]["moneydown"],sharpe,len(d_transactions)]
+                    sharpe=(252 * media - 0.00) / (math.sqrt(252) * desv)
+                    dataframeRes.loc[paramStopLoss,maxEntries,longMean,shortMean,lookBack]=[PnL,d_drawdown["max"]["moneydown"],sharpe,len(d_transactions)]
                  
             dataframeRes.to_csv(file_name)

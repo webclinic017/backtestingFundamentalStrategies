@@ -1,1 +1,1 @@
-{"EUR": ["german manufacturing pmi", "cpi"], "USD": ["ISM manufacturing pmi", "cpi"]}
+{"EUR": ["german manufacturing", "cpi", "interest rate"], "USD": ["ISM manufacturing pmi", "cpi", "interest rate"]}

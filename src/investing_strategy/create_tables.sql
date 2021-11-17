@@ -1,14 +1,13 @@
-create database bolsa;
-use bolsa;
-create table calendario(
- id int PRIMARY KEY,
- fecha datetime,
- zone varchar(100),
- currency varchar(100),
- importance varchar(100),
- event varchar(100),
- actual varchar(100),
- forecast varchar(100),
- previus varchar(100)
-
-);
+create table resultadosBacktestingStocks(
+metodo varchar(100),
+per1 double,
+fecha date,
+exchange varchar(100),
+ratio varchar(100),
+parametro double,
+profit double,
+numFechasEntrada int,
+numFechasSalida int,
+numFechasTotales int,
+PRIMARY KEY (metodo,fecha, exchange, ratio, parametro)
+)

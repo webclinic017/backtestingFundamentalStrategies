@@ -24,7 +24,7 @@ for symbol in symbols:
         pares.append(array[1])
 for symbol in pares:
  if symbol=="EUR":   
-    lines["EUR"]=["german manufacturing pmi","cpi"]
+    lines["EUR"]=["german manufacturing","cpi"]
  if symbol=="USD":
      
     lines["USD"]=["ISM manufacturing pmi","cpi"]
@@ -35,9 +35,9 @@ for symbol in pares:
  if symbol=="JPY":
     lines["JPY"]=["Services pmi","National Core CPI"]
  if symbol=="CAD":
-    lines["CAD"]=["pmi","CPI"]
+    lines["CAD"]=["pmi","cpi"]
  if symbol=="AUD":
-    lines["AUD"]=["aig manufacturing index","CPI"]
+    lines["AUD"]=["aig manufacturing index","cpi"]
 """for symbol in pares:
     lines[symbol].append("gdp")
     lines[symbol].append("retail sales")"""

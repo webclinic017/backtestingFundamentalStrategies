@@ -24,9 +24,9 @@ for column in dataframe.columns:
         
     
 
-print(dataframe.groupby(["maxEntries","shortMean","longMean","lookBack"])["profit"].mean())
+print(dataframe.groupby(["shortMean","longMean","lookBack"])["profit"].mean())
 
-print(dataframe.groupby(["maxEntries","shortMean","longMean","lookBack"])["draw_down"].mean())
+print(dataframe.groupby(["shortMean","longMean","lookBack"])["draw_down"].mean())
 print(dataframe.groupby(["maxEntries","shortMean","longMean","lookBack"])["sharpe"].mean())
 beneficios=pd.DataFrame(dataframe.groupby(["maxEntries","shortMean","longMean","lookBack"])["profit"].mean())
 print(np.array((dataframe["profit"])).mean())
