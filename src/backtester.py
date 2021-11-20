@@ -36,7 +36,7 @@ symbols=["EUR_USD"]
 
 f=open('lines.json')
 events= json.load(f)  
-fechas=["2002-01-01","2021-6-30"] 
+fechas=["2010-01-01","2021-08-30"] 
 
 #PARAMETERS
 MAperiodLong=[19,20,21,22,23,24,25]

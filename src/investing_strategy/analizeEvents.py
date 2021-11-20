@@ -70,10 +70,10 @@ def obtenerCalendario(simbolo,fecha1,fecha2,evento):
     array["actual"]=u
     #if evento=="cpi" and simbolo=="CAD":
     #print("Se aplica media")
-    #array["actual"]=array["actual"].transform((
-    #    #lambda x: x.rolling(window=8).mean()
-    #    lambda x:x.ewm(span=2).mean()
-    #))
+    array["actual"]=array["actual"].transform((
+        #lambda x: x.rolling(window=8).mean()
+        lambda x:x.ewm(span=2).mean()
+    ))
     #print("Sd de la variable %s es %s"%(str(simbolo)+"_"+str(evento),np.std(u)))
   
     #print(array)

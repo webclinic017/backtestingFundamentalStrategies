@@ -20,7 +20,7 @@ class TestStrategy(bt.Strategy):
     def stop(self):
         pnl = round(self.broker.getvalue() - self.startcash,2)
         
-        print('Final PnL: {}, tamAcumlado {}, max drowdowns {}, capital minimo {}, max invested {}'.format(pnl,self.tamAcumulado,self.caida,self.minProfit,self.minMargin))
+        print('Final PnL: {}, tamAcumlado {}, max drowdowns {}, capital minimo {}, max invested {}'.format(pnl,self.tamAcumulado/365*0.02,self.caida,self.minProfit,self.minMargin))
         
       
     def __init__(self):
@@ -212,7 +212,7 @@ class TestStrategy(bt.Strategy):
                self.order = self.close(data=self.datas[0])    
         for i in range(len(self.datas)):
            if self.datas[0].datetime.datetime(0).weekday()==2:
-               if self.getposition(self.datas[i]).size<0:
+               if abs(self.getposition(self.datas[i]).size)>0:
                 self.tamAcumulado+=abs(3*self.getposition(self.datas[i]).size )
            else:
                self.tamAcumulado+=abs(self.getposition(self.datas[i]).size )
