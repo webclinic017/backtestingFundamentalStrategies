@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Nov 25 10:07:25 2021
+
+@author: manuel
+"""
 import datetime as dt
 import v20
 import backtrader as bt
@@ -7,7 +14,7 @@ CONSTANTE=-100000
 CAP_INICIAL=90000
 class TestStrategy(bt.Strategy):
     #dont use log=True with optimation stratey
-    params = (('print',False),('maxEntries',10),('log',False),('lookBack',4),('MAperiodShort',8),('MAperiodLong',22),('MAperiodShort2',8),('MAperiodLong2',22),('symbols',[]),('events',{}),('paramStopLoss',0.25))
+    params = (("RSIPeriod",14),("MAPeriod",20),("MAPeriodLenta",100),("EMAPeriod",4),('print',False),('maxEntries',10),('log',False),('lookBack',4),('MAperiodShort',8),('MAperiodLong',22),('MAperiodShort2',8),('MAperiodLong2',22),('symbols',[]),('events',{}),('paramStopLoss',0.25))
     
     def log(self, txt, dt=None):
       if self.params.log:
@@ -40,15 +47,41 @@ class TestStrategy(bt.Strategy):
         self.sellBefore=[]
         self.maximaGanancia= CAP_INICIAL/30
         self.caida=0
+        self.rsis = []
+        self.masLenta=[]
+        self.macds = []
+        self.estamosEnCompra=False
+        self.estamosEnVenta=False
+        self.emas=[]
+        self.desvs=[]
+        self.mas=[]
+        self.waiting=True
         #print("Numero de simbolos %s"%((len(self.datas))))
         self.tamAcumulado=0
         self.dineroInicialOperacion=0
         self.minProfit=100000
         self.minMargin=0
-      
+        
+        self.long=0
+        self.operacionesAcumuladas=0
         for i in range(len(self.datas)):
+            rsi = bt.indicators.RSI_EMA(
+                self.datas[i].close, period=self.params.RSIPeriod, movav=bt.indicators.EMA)
             
-           
+            ma = bt.indicators.SMA(
+                self.datas[i].close, period=self.params.MAPeriod)
+            maLenta = bt.indicators.SMA(
+                self.datas[i].close, period=self.params.MAPeriodLenta)
+            ema = bt.indicators.EMA(
+                self.datas[i].close, period=self.params.EMAPeriod)
+            desv = bt.indicators.StdDev(
+                self.datas[i].close, period=self.params.MAPeriodLenta,movav=bt.indicators.SMA)
+            
+            self.desvs.append(desv)
+            self.mas.append(ma)
+            self.rsis.append(rsi)
+            self.emas.append(ema)
+            self.masLenta.append(maLenta)
             self.mas1Short.append([])
             self.mas2Short.append([])
             self.mas1Long.append([])
@@ -57,6 +90,7 @@ class TestStrategy(bt.Strategy):
             self.data2.append([])
             self.ks.append(0)
             self.buyBefore.append(False)
+           
             self.sellBefore.append(False)
             for k in range(len(self.params.events[self.params.symbols[i].split("_")[0]])):
                 self.mas1Short[i].append(0)
@@ -180,8 +214,8 @@ class TestStrategy(bt.Strategy):
        
         #print(self.getposition(self.datas[0]).size*(self.datas[0].close[0]-self.getposition(self.datas[0]).price))
         
-        if (self.broker.get_value()-87000-10000000)<self.minProfit:
-            self.minProfit=(self.broker.get_value()-87000-10000000)
+        if (self.broker.get_value()-87000-1000000000)<self.minProfit:
+            self.minProfit=(self.broker.get_value()-87000-1000000000)
         if self.order:
             return
         cantidadInvertida=abs(self.getposition(self.datas[0]).size)*self.datas[0].close[0]
@@ -206,18 +240,17 @@ class TestStrategy(bt.Strategy):
         #print(self.datas[0].datetime.datetime(0).weekday())
         #print(self.broker.get_value()-87000)
         #time.sleep(0.02)
-        uu=(self.broker.get_value()-87000-10000000)
+        uu=(self.broker.get_value()-87000-1000000000)
+         
         #print(self.dineroInicialOperacion)
         if self.dineroInicialOperacion>0 and abs(self.getposition(self.datas[0]).size)>0 and ((self.dineroInicialOperacion-uu)/self.dineroInicialOperacion)>self.params.paramStopLoss:
-               self.order = self.close(data=self.datas[0])   
-        """if self.broker.get_value()!=10000000+90000:
-                   print(self.getposition(self.datas[0]).price)
-                   if (self.getposition(self.datas[0]).size*(self.datas[0].close[0]-self.getposition(self.datas[0]).price))/(self.broker.get_value()-10000000-90000)>0.1:
-                     
-                       if self.getposition(self.datas[0]).size>0:
-                           self.order=self.sell(self.datas[0],self.getposition(self.datas[0]).size*0.25)
-                       if  self.getposition(self.datas[0]).size<0:
-                           self.order=self.buy(self.datas[0],self.getposition(self.datas[0]).size*0.25)"""
+               self.order = self.close(data=self.datas[0]) 
+               self.operacionesAcumuladas=0
+               self.waiting=False
+               self.long=0
+       
+        #print(self.dineroInicialOperacion)
+          
         for i in range(len(self.datas)):
            if self.datas[0].datetime.datetime(0).weekday()==2:
                if abs(self.getposition(self.datas[i]).size)>0:
@@ -242,9 +275,8 @@ class TestStrategy(bt.Strategy):
                #print(event1)
                #print(event2)
               
-               a=self.broker.get_value()-10000000-90000-self.getposition(self.datas[i]).size*(self.datas[i].close[0]-self.getposition(self.datas[i]).price)
+               a=self.broker.get_value()-1000000000-90000-self.getposition(self.datas[i]).size*(self.datas[i].close[0]-self.getposition(self.datas[i]).price)
                a=a*30
-              
                
                #if a>=0:
                #size =  self.broker.get_value()  / (10*len(self.datas)*self.params.maxEntries)
@@ -252,9 +284,9 @@ class TestStrategy(bt.Strategy):
                
                #else:
                     # size =  (90000)  / (3*len(self.datas)*self.params.maxEntries)
-                   
+             
                sizeToBuy = int(size / (self.datas[i].close[0]))
-              
+               
                #sizeToBuy=max([sizeToBuy,sizeToBuy *3-abs(self.getposition(self.datas[i]).size)])
                #print(sizeToBuy)
                #if(self.getposition(self.datas[i]).size ==0):
@@ -266,29 +298,7 @@ class TestStrategy(bt.Strategy):
              
                
                #print(("%s %s %s"%(k,self.mas1Short[i][k],self.params.symbols[i])))
-               if self.buyBefore[i] and u==0 :
-                      self.dineroInicialOperacion=self.broker.get_value()-10000000-90000+3000
-                    
-                      if self.getposition(self.datas[i]).size < 0:
-                                     self.order = self.close(data=self.datas[i])
-                                     self.ks[i]=0
-                      if self.ks[i]<self.params.maxEntries:           
-                        self.order = self.buy(self.datas[i], size=sizeToBuy)
-                        #self.ks[i]+=1
-                      self.buyBefore[i]=False               
-               if self.sellBefore[i] and u==0 :
-                    self.dineroInicialOperacion=self.broker.get_value()-10000000-90000+3000
-                  
-                    #self.log("CLose %s"%((self.datas[i].close[0])))
-                    #self.log("Comision %s"%(comision))
-                    #self.log("SIze to buy %s"%(sizeToBuy))
-                    if self.getposition(self.datas[i]).size > 0:
-                                     self.order = self.close(data=self.datas[i])
-                                     self.ks[i]=0
-                    if self.ks[i]<self.params.maxEntries: 
-                         self.order = self.sell(self.datas[i], size=sizeToBuy)
-                         #self.ks[i]+=1
-                    self.sellBefore[i]=False                    
+                               
                if getattr(self.datas[i],event1)[0]!=0 or  getattr(self.datas[i],event2)[0]!=0:
                    if getattr(self.datas[i],event1)[0]!=0:
                        if getattr(self.datas[i],event1)[0]!=CONSTANTE:
@@ -306,29 +316,79 @@ class TestStrategy(bt.Strategy):
                         self.calculateMeans(i,k,2)
                    if lll<3:
                        action=self.checkConditions(i,k)
-                       if action=="buy" and u==0 :
+                       if action=="buy":
+                           if self.estamosEnVenta==True:
+                               self.operacionesAcumuladas=0
+                               self.waiting=False
+                               self.long=0
+                               self.dineroInicialOperacion=self.broker.get_value()-1000000000-90000+3000
+                            
+                           self.operacionesAcumuladas+=1
+                           self.estamosEnCompra=True
+                           self.estamosEnVenta=False
                            self.buyBefore[i]=True
                            self.log("buy before")
-                           """if self.getposition(self.datas[i]).size < 0:
-                                         self.order = self.close(data=self.datas[i])
-                                         self.ks[i]=0
-                           if self.ks[i]<self.params.maxEntries:           
-                            self.order = self.buy(self.datas[i], size=sizeToBuy)
-                            #self.ks[i]+=1
-                           self.buyBefore[i]=False  """
-                           u=1
+                           
+                           
                            
                         
-                       elif action=="sell" and u==0 :
-                           self.sellBefore[i]=True
+                       elif action=="sell":
+                           if self.estamosEnCompra==True:
+                               self.dineroInicialOperacion=self.broker.get_value()-1000000000-90000+3000
+                               self.tamAcumuladoAOperar=0
+                               self.operacionesAcumuladas=0
+                               self.waiting=False
+                               self.long=0
+                           self.operacionesAcumuladas+=1
+                           self.estamosEnCompra=False
+                           self.estamosEnVenta=True
                            self.log("sell before")
-                           """if self.getposition(self.datas[i]).size > 0:
-                                         self.order = self.close(data=self.datas[i])
-                                         self.ks[i]=0
-                           if self.ks[i]<self.params.maxEntries: 
-                             self.order = self.sell(self.datas[i], size=sizeToBuy)
-                             #self.ks[i]+=1
-                           self.sellBefore[i]=False """
-                           u=1
-               k+=1     
+               k+=1 
+            
+        if self.estamosEnCompra==True and self.getposition(self.datas[i]).size<0:
+            self.order = self.close(self.datas[i])
+        if self.estamosEnVenta==True and self.getposition(self.datas[i]).size>0:
+            self.order = self.close(self.datas[i]) 
+            
+          
+        if self.estamosEnCompra:
+         
+            if self.emas[i][0]>self.mas[i][0] and self.emas[i][-1]<=self.mas[i][-1] and len(self)-self.long>20 :
+                 
+               
+             
+                 if self.waiting==False:
+                     self.order = self.buy(self.datas[i], size=sizeToBuy)
+                 else:
+                      self.order = self.buy(self.datas[i], size=sizeToBuy)
+                 
+                 self.long=len(self)
+          
+                
+        if self.estamosEnVenta:
+        
+            if self.emas[i][0]<self.mas[i][0] and self.emas[i][-1]>=self.mas[i][-1] and len(self)-self.long>20 :
+                
+             
+                     
+                 if self.waiting==False:
+                     self.order = self.sell(self.datas[i], size=sizeToBuy)
+                 else:
+                      self.order = self.sell(self.datas[i], size=sizeToBuy)
+                      
+                
+                 self.long=len(self)
+       
+                        
+      
+                     
+                 
+              
+               
+                        
+                   
+                   
+                           
+                           
+           
         #print(totalSize)

@@ -36,7 +36,7 @@ symbols=["EUR_USD"]
 
 f=open('lines.json')
 events= json.load(f)  
-fechas=["2010-01-01","2021-08-30"] 
+fechas=["2008-01-01","2021-08-30"] 
 
 #PARAMETERS
 MAperiodLong=[19,20,21,22,23,24,25]
@@ -83,7 +83,7 @@ for i in range(len(fechas)-1):
             #print(events)
             cerebro.addstrategy(e.TestStrategy,symbols=symbols,events=events,MAperiodLong=largo,MAperiodShort=corto,MAperiodLong2=largo2,MAperiodShort2=corto2)
             thestrats = cerebro.run()
-            cerebro.plot(iplot=False,start=dt.date(2002, 1, 1), end=dt.date(2021, 11, 1))
+            cerebro.plot(iplot=False,start=dt.date(2008, 1, 1), end=dt.date(2021, 11, 1))
         
             thestrat = thestrats[0]
             pyfoliozer = thestrat.analyzers.getbyname('pyfolio')
